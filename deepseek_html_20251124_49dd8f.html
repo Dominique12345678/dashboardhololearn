@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoloLearn - Dashboard Éducatif</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --accent: #00c9ff;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        .upload-area {
+            border: 2px dashed #ced4da;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(106, 17, 203, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .file-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: var(--transition);
+        }
+
+        .file-item:hover {
+            background: white;
+            transform: translateX(5px);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            color: var(--primary);
+        }
+
+        .file-actions button {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 5px;
+        }
+
+        .file-actions button:hover {
+            color: var(--primary);
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            animation: slideInRight 0.5s ease;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .progress-container {
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 4px;
+            width: 0;
+            transition: width 1.5s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 50px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(106, 17, 203, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(106, 17, 203, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(106, 17, 203, 0);
+            }
+        }
+
+        /* Styles pour l'export */
+        .export-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .export-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .export-modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+        }
+
+        .export-overlay.active .export-modal {
+            transform: translateY(0);
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .export-option {
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-option:hover {
+            border-color: var(--primary);
+            background: rgba(106, 17, 203, 0.05);
+        }
+
+        .export-option i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .export-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                top: 30px;
+                right: 20px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+            }
+            
+            .card {
+                padding: 20px 15px;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+
+            .export-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .upload-area {
+                padding: 20px 10px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Styles pour les nouveaux graphiques */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mini-chart-container {
+            height: 200px;
+            position: relative;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .chart-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(106, 17, 203, 0.1);
+            color: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.8rem;
+        }
+
+        .chart-actions button:hover {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>HoloLearn Dashboard</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="exportBtn">
+                    <i class="fas fa-download"></i> Exporter
+                </button>
+                <button class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="user-info">
+                    <div class="user-avatar pulse">JD</div>
+                    <div>
+                        <div class="user-name">Jean Dupont</div>
+                        <div class="user-role">Étudiant</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Carte des statistiques -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Mes Statistiques</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Cours Terminés</div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 80%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Temps d'Étude</div>
+                        <div class="stat-value">36h</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Quiz Réussis</div>
+                        <div class="stat-value">24</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 90%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Badges Obtenus</div>
+                        <div class="stat-value">8</div>
+                        <div class="stat-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 40%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte de progression -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Progression du Cours</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>Mathématiques Avancées</span>
+                        <span>65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>Physique Quantique</span>
+                        <span>42%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 42%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>Histoire de l'Art</span>
+                        <span>78%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 78%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>Programmation Python</span>
+                        <span>91%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 91%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte d'activité récente -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Activité Récente</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                </div>
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Terminé le chapitre 5: Algèbre Linéaire</div>
+                            <div class="activity-time">Il y a 2 heures</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Quiz de Physique réussi avec 92%</div>
+                            <div class="activity-time">Il y a 5 heures</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Téléchargé les ressources du cours</div>
+                            <div class="activity-time">Hier, 14:30</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Regardé la vidéo: Introduction à l'IA</div>
+                            <div class="activity-time">Hier, 10:15</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Nouvelle section avec plusieurs graphiques -->
+        <div class="charts-row">
+            <!-- Carte de graphiques de performance -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Performance d'Apprentissage</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                <div class="chart-actions">
+                    <button id="weeklyView">Semaine</button>
+                    <button id="monthlyView">Mois</button>
+                    <button id="yearlyView">Année</button>
+                </div>
+            </div>
+
+            <!-- Carte de répartition du temps d'étude -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Répartition du Temps d'Étude</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timeDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <!-- Carte de comparaison avec la moyenne -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Comparaison avec la Moyenne</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Carte d'évolution des compétences -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Évolution des Compétences</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte d'upload de fichiers -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Analyse de Données</h2>
+                <div class="card-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+            </div>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">
+                    <h3>Déposez votre fichier Excel ici</h3>
+                    <p>Formats supportés: .xlsx, .xls, .csv</p>
+                </div>
+                <button class="btn btn-primary" id="uploadBtn">
+                    <i class="fas fa-file-excel"></i> Parcourir les fichiers
+                </button>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+            </div>
+            <div class="chart-container">
+                <canvas id="dataChart"></canvas>
+            </div>
+            <ul class="file-list" id="fileList">
+                <!-- Les fichiers uploadés apparaîtront ici -->
+            </ul>
+        </div>
+
+        <!-- Carte de simulation en temps réel -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Simulation en Temps Réel</h2>
+                <div class="card-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="realtimeChart"></canvas>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" id="simulateBtn">
+                    <i class="fas fa-play"></i> Démarrer la Simulation
+                </button>
+            </div>
+        </div>
+
+        <footer>
+            <p>HoloLearn Dashboard - Plateforme d'Éducation Interactive © 2023</p>
+        </footer>
+    </div>
+
+    <!-- Overlay d'export -->
+    <div class="export-overlay" id="exportOverlay">
+        <div class="export-modal">
+            <h2>Exporter le Dashboard</h2>
+            <p>Choisissez le format d'export :</p>
+            <div class="export-options">
+                <div class="export-option" data-format="pdf">
+                    <i class="fas fa-file-pdf"></i>
+                    <h3>PDF</h3>
+                    <p>Document haute qualité</p>
+                </div>
+                <div class="export-option" data-format="png">
+                    <i class="fas fa-file-image"></i>
+                    <h3>Image PNG</h3>
+                    <p>Capture d'écran</p>
+                </div>
+            </div>
+            <div class="export-actions">
+                <button class="btn btn-secondary" id="cancelExport">Annuler</button>
+                <button class="btn btn-primary" id="confirmExport" disabled>Exporter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialiser les graphiques
+        document.addEventListener('DOMContentLoaded', function() {
+            // Graphique de performance
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            const performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Score Moyen (%)',
+                        data: [65, 72, 80, 75, 85, 78, 90],
+                        borderColor: '#6a11cb',
+                        backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Graphique de répartition du temps
+            const timeDistributionCtx = document.getElementById('timeDistributionChart').getContext('2d');
+            const timeDistributionChart = new Chart(timeDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mathématiques', 'Physique', 'Histoire', 'Programmation', 'Langues'],
+                    datasets: [{
+                        data: [30, 25, 15, 20, 10],
+                        backgroundColor: [
+                            '#6a11cb',
+                            '#2575fc',
+                            '#00c9ff',
+                            '#11998e',
+                            '#38ef7d'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Graphique de comparaison
+            const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+            const comparisonChart = new Chart(comparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Maths', 'Physique', 'Histoire', 'Programmation', 'Langues'],
+                    datasets: [{
+                        label: 'Votre score',
+                        data: [85, 78, 65, 92, 70],
+                        backgroundColor: '#6a11cb'
+                    }, {
+                        label: 'Moyenne classe',
+                        data: [72, 68, 60, 75, 65],
+                        backgroundColor: '#2575fc'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Graphique d'évolution des compétences
+            const skillsCtx = document.getElementById('skillsChart').getContext('2d');
+            const skillsChart = new Chart(skillsCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Analyse', 'Mémorisation', 'Résolution', 'Créativité', 'Collaboration', 'Présentation'],
+                    datasets: [{
+                        label: 'Début de formation',
+                        data: [65, 70, 60, 55, 50, 45],
+                        borderColor: '#2575fc',
+                        backgroundColor: 'rgba(37, 117, 252, 0.1)',
+                        pointBackgroundColor: '#2575fc'
+                    }, {
+                        label: 'Maintenant',
+                        data: [85, 80, 90, 75, 70, 65],
+                        borderColor: '#6a11cb',
+                        backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                        pointBackgroundColor: '#6a11cb'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Graphique de données (vide initialement)
+            const dataCtx = document.getElementById('dataChart').getContext('2d');
+            const dataChart = new Chart(dataCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Valeurs',
+                        data: [],
+                        backgroundColor: 'rgba(37, 117, 252, 0.7)',
+                        borderColor: 'rgba(37, 117, 252, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Graphique en temps réel
+            const realtimeCtx = document.getElementById('realtimeChart').getContext('2d');
+            const realtimeChart = new Chart(realtimeCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Données Simulées',
+                        data: [],
+                        borderColor: '#00c9ff',
+                        backgroundColor: 'rgba(0, 201, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Gestion des boutons de période pour le graphique de performance
+            document.getElementById('weeklyView').addEventListener('click', function() {
+                performanceChart.data.labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+                performanceChart.data.datasets[0].data = [65, 72, 80, 75, 85, 78, 90];
+                performanceChart.update();
+            });
+
+            document.getElementById('monthlyView').addEventListener('click', function() {
+                performanceChart.data.labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
+                performanceChart.data.datasets[0].data = [70, 75, 82, 85];
+                performanceChart.update();
+            });
+
+            document.getElementById('yearlyView').addEventListener('click', function() {
+                performanceChart.data.labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+                performanceChart.data.datasets[0].data = [60, 65, 70, 72, 75, 78, 80, 82, 85, 83, 87, 90];
+                performanceChart.update();
+            });
+
+            // Simulation de données en temps réel
+            let simulationInterval;
+            document.getElementById('simulateBtn').addEventListener('click', function() {
+                const button = this;
+                if (button.innerHTML.includes('Démarrer')) {
+                    button.innerHTML = '<i class="fas fa-pause"></i> Arrêter la Simulation';
+                    startSimulation();
+                } else {
+                    button.innerHTML = '<i class="fas fa-play"></i> Démarrer la Simulation';
+                    stopSimulation();
+                }
+            });
+
+            function startSimulation() {
+                let time = 0;
+                simulationInterval = setInterval(() => {
+                    time++;
+                    const value = Math.sin(time * 0.2) * 50 + 50 + Math.random() * 20 - 10;
+                    
+                    realtimeChart.data.labels.push(time.toString());
+                    realtimeChart.data.datasets[0].data.push(value);
+                    
+                    if (realtimeChart.data.labels.length > 20) {
+                        realtimeChart.data.labels.shift();
+                        realtimeChart.data.datasets[0].data.shift();
+                    }
+                    
+                    realtimeChart.update();
+                }, 500);
+            }
+
+            function stopSimulation() {
+                clearInterval(simulationInterval);
+            }
+
+            // Gestion de l'upload de fichiers
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileList = document.getElementById('fileList');
+
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#6a11cb';
+                uploadArea.style.backgroundColor = 'rgba(106, 17, 203, 0.1)';
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = '#ced4da';
+                uploadArea.style.backgroundColor = '';
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ced4da';
+                uploadArea.style.backgroundColor = '';
+                
+                if (e.dataTransfer.files.length) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            function handleFile(file) {
+                // Simulation de l'upload et de l'analyse
+                const fileName = file.name;
+                const fileSize = (file.size / 1024).toFixed(2) + ' KB';
+                
+                // Ajouter le fichier à la liste
+                const fileItem = document.createElement('li');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <i class="fas fa-file-excel file-icon"></i>
+                        <div>
+                            <div class="file-name">${fileName}</div>
+                            <div class="file-size">${fileSize}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="analyze-btn" title="Analyser les données">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                        <button class="delete-btn" title="Supprimer">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                fileList.appendChild(fileItem);
+                
+                // Simuler l'analyse et mettre à jour le graphique
+                setTimeout(() => {
+                    // Données simulées basées sur le nom du fichier
+                    const labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+                    const data = labels.map(() => Math.floor(Math.random() * 100) + 20);
+                    
+                    dataChart.data.labels = labels;
+                    dataChart.data.datasets[0].data = data;
+                    dataChart.update();
+                    
+                    // Animation de confirmation
+                    fileItem.style.animation = 'pulse 1s';
+                    setTimeout(() => {
+                        fileItem.style.animation = '';
+                    }, 1000);
+                }, 1500);
+                
+                // Gestion des boutons d'action
+                fileItem.querySelector('.analyze-btn').addEventListener('click', () => {
+                    alert(`Analyse des données de ${fileName} en cours...`);
+                });
+                
+                fileItem.querySelector('.delete-btn').addEventListener('click', () => {
+                    fileItem.style.transform = 'translateX(100%)';
+                    fileItem.style.opacity = '0';
+                    setTimeout(() => {
+                        fileList.removeChild(fileItem);
+                    }, 300);
+                });
+            }
+
+            // Animation des barres de progression
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+
+            // Gestion du menu mobile
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            mobileMenuBtn.addEventListener('click', function() {
+                const userInfo = document.querySelector('.user-info');
+                userInfo.style.display = userInfo.style.display === 'none' ? 'flex' : 'none';
+            });
+
+            // Ajuster l'affichage en fonction de la taille de l'écran
+            function adjustLayout() {
+                const userInfo = document.querySelector('.user-info');
+                if (window.innerWidth <= 768) {
+                    userInfo.style.display = 'none';
+                } else {
+                    userInfo.style.display = 'flex';
+                }
+            }
+
+            window.addEventListener('resize', adjustLayout);
+            adjustLayout();
+
+            // Gestion de l'export
+            const exportBtn = document.getElementById('exportBtn');
+            const exportOverlay = document.getElementById('exportOverlay');
+            const cancelExport = document.getElementById('cancelExport');
+            const confirmExport = document.getElementById('confirmExport');
+            const exportOptions = document.querySelectorAll('.export-option');
+            
+            let selectedFormat = null;
+
+            exportBtn.addEventListener('click', () => {
+                exportOverlay.classList.add('active');
+            });
+
+            cancelExport.addEventListener('click', () => {
+                exportOverlay.classList.remove('active');
+                selectedFormat = null;
+                confirmExport.disabled = true;
+                exportOptions.forEach(option => option.classList.remove('selected'));
+            });
+
+            exportOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    exportOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedFormat = option.getAttribute('data-format');
+                    confirmExport.disabled = false;
+                });
+            });
+
+            confirmExport.addEventListener('click', () => {
+                if (selectedFormat) {
+                    exportDashboard(selectedFormat);
+                    exportOverlay.classList.remove('active');
+                    selectedFormat = null;
+                    confirmExport.disabled = true;
+                    exportOptions.forEach(option => option.classList.remove('selected'));
+                }
+            });
+
+            function exportDashboard(format) {
+                // Afficher un indicateur de chargement
+                const originalText = exportBtn.innerHTML;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Export en cours...';
+                exportBtn.disabled = true;
+
+                if (format === 'pdf') {
+                    exportToPDF();
+                } else if (format === 'png') {
+                    exportToPNG();
+                }
+
+                // Restaurer le bouton après un délai
+                setTimeout(() => {
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
+                }, 3000);
+            }
+
+            function exportToPDF() {
+                // Utiliser html2canvas pour capturer le dashboard
+                html2canvas(document.querySelector('.container'), {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    width: document.querySelector('.container').scrollWidth,
+                    height: document.querySelector('.container').scrollHeight
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    
+                    const imgWidth = 210; // A4 width in mm
+                    const pageHeight = 295; // A4 height in mm
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+                    
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+                    
+                    pdf.save('HoloLearn-Dashboard.pdf');
+                });
+            }
+
+            function exportToPNG() {
+                html2canvas(document.querySelector('.container'), {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    width: document.querySelector('.container').scrollWidth,
+                    height: document.querySelector('.container').scrollHeight
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'HoloLearn-Dashboard.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
